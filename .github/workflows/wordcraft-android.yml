@@ -44,7 +44,7 @@ jobs:
           assert "compileSdk = 37" in original, "Upstream SDK version changed; review needed"
           p.write_text(original.replace("compileSdk = 37", "compileSdk = 36", 1))
           with p.open("a") as file:
-              file.write("\\n" + "\\n".join(["// CI API 36 compatibility test","configurations.configureEach {","    resolutionStrategy.eachDependency {","        if (requested.group in listOf(\"androidx.compose.ui\", \"androidx.compose.foundation\", \"androidx.compose.animation\", \"androidx.compose.material\")) {","            useVersion(\"1.9.4\")","            because(\"API 37 SDK is unavailable\")","        }","    }","}"]) + "\\n")
+              file.write("\n" + "\n".join(["// CI API 36 compatibility test","configurations.configureEach {","    resolutionStrategy.eachDependency {","        if (requested.group in listOf(\"androidx.compose.ui\", \"androidx.compose.foundation\", \"androidx.compose.animation\", \"androidx.compose.material\")) {","            useVersion(\"1.9.4\")","            because(\"API 37 SDK is unavailable\")","        }","    }","}"]) + "\n")
           PY
       - name: Build upstream APK (arm64)
         working-directory: upstream/wordcraft-android/apps/wordcraft-android/android
