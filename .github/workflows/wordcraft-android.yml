@@ -33,13 +33,22 @@ jobs:
           packages: ''
       - name: Install Android SDK and NDK
         run: |
-          sdkmanager --channel=3 "platforms;android-37" "build-tools;36.0.0" "ndk;29.0.14206865"
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865"
           yes | sdkmanager --licenses >/dev/null || true
+      - name: Temporary CI SDK 36 compatibility override
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("upstream/wordcraft-android/apps/wordcraft-android/android/app/build.gradle.kts")
+          original = p.read_text()
+          assert "compileSdk = 37" in original, "Upstream SDK version changed; review needed"
+          p.write_text(original.replace("compileSdk = 37", "compileSdk = 36", 1))
+          PY
       - name: Build upstream APK (arm64)
         working-directory: upstream/wordcraft-android/apps/wordcraft-android/android
         run: |
           chmod +x gradlew
-          ./gradlew :app:assembleDebug --no-daemon --stacktrace
+          ./gradlew :app:assembleDebug -Pwordcraft.abis=arm64-v8a --no-daemon --stacktrace
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
