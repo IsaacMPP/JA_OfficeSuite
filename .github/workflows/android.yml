@@ -1,7 +1,7 @@
-name: Android APK
+name: JA OfficeSuite · Android CI
 on:
   push:
-    branches: [main, feature/android-foundation]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 jobs:
   debug-apk:
-    name: Build Android Debug APK
+    name: Compilar y publicar APK de prueba
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
