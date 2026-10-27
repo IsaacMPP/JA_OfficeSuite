@@ -33,7 +33,7 @@ jobs:
           packages: ''
       - name: Install Android SDK and NDK
         run: |
-          sdkmanager "platforms;android-37" "build-tools;36.0.0" "ndk;29.0.14206865"
+          sdkmanager --channel=3 "platforms;android-37" "build-tools;36.0.0" "ndk;29.0.14206865"
           yes | sdkmanager --licenses >/dev/null || true
       - name: Build upstream APK (arm64)
         working-directory: upstream/wordcraft-android/apps/wordcraft-android/android
