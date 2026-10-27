@@ -1,6 +1,7 @@
 package org.ja.officesuite
 
 import android.content.Intent
+import android.provider.OpenableColumns
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -42,12 +43,21 @@ class MainActivity : ComponentActivity() {
         var filename by rememberSaveable { mutableStateOf("Sin título.txt") }
         var fontSize by rememberSaveable { mutableFloatStateOf(17f) }
         var showInfo by remember { mutableStateOf(false) }
+        var importedDocx by rememberSaveable { mutableStateOf(false) }
         val open = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null) try {
-                contentResolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use {
-                    document = it.readText()
+                val displayedName = contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) cursor.getString(0) else null
+                } ?: "Documento"
+                val isDocx = displayedName.endsWith(".docx", ignoreCase = true) ||
+                    contentResolver.getType(uri) == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                val loaded = contentResolver.openInputStream(uri)?.use { stream ->
+                    if (isDocx) DocxTextExtractor.extract(stream) else stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
                 } ?: error("No se pudo abrir el archivo")
-                filename = uri.lastPathSegment?.substringAfterLast('/') ?: "Documento.txt"
+                document = loaded
+                filename = displayedName
+                importedDocx = isDocx
+                if (isDocx) Toast.makeText(this, "DOCX importado como texto. El formato original no se conserva.", Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 Toast.makeText(this, "Error al abrir: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
             }
@@ -86,9 +96,9 @@ class MainActivity : ComponentActivity() {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Button(onClick = { open.launch(arrayOf("text/plain")) }) { Text("Abrir") }
-                            Button(onClick = { save.launch(if (filename.endsWith(".txt", true)) filename else "documento.txt") }) {
-                                Text("Guardar")
+                            Button(onClick = { open.launch(arrayOf("text/plain", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")) }) { Text("Abrir") }
+                            Button(onClick = { save.launch(if (!importedDocx && filename.endsWith(".txt", true)) filename else filename.substringBeforeLast(".") + ".txt") }) {
+                                Text("Guardar TXT")
                             }
                             Spacer(Modifier.weight(1f))
                             OutlinedButton(onClick = { fontSize = (fontSize - 1f).coerceAtLeast(12f) }, contentPadding = PaddingValues(horizontal = 10.dp)) {
@@ -109,7 +119,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             Column(Modifier.fillMaxSize().padding(if (wide) 36.dp else 20.dp)) {
                                 if (document.isEmpty()) {
-                                    Text("Empieza a escribir o abre un archivo TXT", color = Color.Gray, fontSize = 13.sp)
+                                    Text("Empieza a escribir o importa TXT / DOCX", color = Color.Gray, fontSize = 13.sp)
                                     Spacer(Modifier.height(8.dp))
                                 }
                                 BasicTextField(
@@ -127,8 +137,8 @@ class MainActivity : ComponentActivity() {
                     AlertDialog(
                         onDismissRequest = { showInfo = false },
                         confirmButton = { TextButton(onClick = { showInfo = false }) { Text("Cerrar") } },
-                        title = { Text("JA OfficeSuite · 0.2.0") },
-                        text = { Text("Vista inicial para Android. Abre y guarda texto TXT. El formato DOCX y el motor WordCraft todavía NO están implementados; el tamaño A−/A+ solo cambia la vista.") }
+                        title = { Text("JA OfficeSuite · 0.3.0") },
+                        text = { Text("Abre TXT e importa el texto principal de DOCX. DOCX no conserva estilos, tablas ni imágenes; guardar siempre genera TXT. El motor WordCraft todavía no está integrado y A−/A+ solo cambia la vista.") }
                     )
                 }
             }
