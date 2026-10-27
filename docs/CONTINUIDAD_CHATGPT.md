@@ -21,3 +21,11 @@
 3. Auditar dependencias Rust Android y prototipo separado de lectura DOCX.
 4. Implementar edición visual rica y persistencia del documento una vez validado motor.
 5. Pruebas de regresión y release firmada.
+
+## Fase 2 — DOCX texto (commit 9467999)
+- v0.3.0: importador provisional de `word/document.xml` mediante ZIP y XmlPullParser de Android.
+- La importación conserva texto, saltos de párrafo, tabulaciones, saltos explícitos. No interpreta tablas estructuralmente, cabeceras, notas, imágenes, estilos, ni maquetación; no se puede guardar como DOCX.
+- El botón de guardar exporta **TXT**, incluso cuando se abrió DOCX. Se muestra advertencia de pérdida de formato al importar.
+- Límites básicos: máximo 5000 entradas ZIP, máximo 8 MiB del XML principal descomprimido.
+- Validación en curso: workflows del commit `9467999`. Confirmar APK y probar en Android antes de afirmar que funciona.
+- Próximo paso: pruebas instrumentadas con muestras reales de documentos y análisis de motor Rust/JNI; no confundir el prototipo con round-trip DOCX.
