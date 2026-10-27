@@ -1,0 +1,3 @@
+[submodule "upstream/wordcraft-android"]
+	path = upstream/wordcraft-android
+	url = https://github.com/artcraft-android/wordcraft-android.git
